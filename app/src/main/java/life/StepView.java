@@ -55,14 +55,14 @@ public class StepView extends View {
         mArrowPath.arcTo(new RectF(-arrowR, -arrowR, arrowR, arrowR), 0, -180);
         mArrowPath.lineTo(0, -3 * arrowR);
         mArrowPath.close();
-
+        // 页面背景，png最好
         mBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         if (canvas == null) return;
-        canvas.drawBitmap(mBitmap, new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight()), new Rect(0, 0, getWidth(), getHeight()), null); // 将mBitmap绘到canLock
+//        canvas.drawBitmap(mBitmap, new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight()), new Rect(0, 0, getWidth(), getHeight()), null); // 将mBitmap绘到canLock
         for (PointF p : mPointList) {
             canvas.drawCircle(p.x, p.y, cR, mPaint);
         }
