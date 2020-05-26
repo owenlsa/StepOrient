@@ -14,6 +14,7 @@ import java.util.TimerTask;
  */
 public class StepSensorAcceleration extends StepSensorBase {
     private final String TAG = "StepSensorAcceleration";
+    int CURRENT_FALL = 0;
     //存放三轴数据
     final int valueNum = 5;
     //用于存放计算阈值的波峰波谷差值
@@ -71,7 +72,8 @@ public class StepSensorAcceleration extends StepSensorBase {
     protected void registerStepListener() {
         // 注册加速度传感器
         isAvailable = sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_DELAY_GAME);
+                10000);  //10000微妙，0.01秒一次，100Hz
+//                SensorManager.SENSOR_DELAY_GAME); //SensorManager.SENSOR_DELAY_GAME = 1 对应20000微秒的更新间隔
         if (isAvailable) {
             Log.i(TAG, "加速度传感器可用！");
         } else {
@@ -102,9 +104,16 @@ public class StepSensorAcceleration extends StepSensorBase {
         detectorNewStep(average);
     }
 
+
+    public void detectorFall(float values) {  //检测跌倒的函数lsa
+        if (values > 15) {
+            CURRENT_FALL = 1;
+        }
+    }
+
     /*
      * 检测步子，并开始计步
-	 * 1.传入sersor中的数据
+	 * 1.传入sersor中的数据，这里传入的是三轴数据平方开根号，平均的加速度
 	 * 2.如果检测到了波峰，并且符合时间差以及阈值的条件，则判定为1步
 	 * 3.符合时间差条件，波峰波谷差值大于initialValue，则将该差值纳入阈值的计算中
 	 * */
@@ -119,6 +128,7 @@ public class StepSensorAcceleration extends StepSensorBase {
                 if (timeOfNow - timeOfLastPeak >= 200
                         && (peakOfWave - valleyOfWave >= ThreadValue) && (timeOfNow - timeOfLastPeak) <= 2000) {
                     timeOfThisPeak = timeOfNow;
+                    detectorFall(values);  //检测跌倒的函数lsa
                     //更新界面的处理，不涉及到算法
                     preStep();
                 }
@@ -132,7 +142,7 @@ public class StepSensorAcceleration extends StepSensorBase {
         gravityOld = values;
     }
 
-    private void preStep() {
+    private void preStep() { //完成计步判定
 //        if (CountTimeState == 0) {
 //            // 开启计时器
 //            time = new TimeCount(duration, 700);
@@ -145,7 +155,8 @@ public class StepSensorAcceleration extends StepSensorBase {
 //        } else if (CountTimeState == 2) {
         StepSensorBase.CURRENT_SETP++;
 //            if (stepCallBack != null) {
-        stepCallBack.Step(StepSensorBase.CURRENT_SETP);
+        stepCallBack.Step(StepSensorBase.CURRENT_SETP, CURRENT_FALL);
+        CURRENT_FALL = 0;  //检测跌倒的函数lsa，重置
 //            }
 //        }
 

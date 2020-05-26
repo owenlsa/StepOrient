@@ -53,7 +53,7 @@ public class StepSensorPedometer extends StepSensorBase {
             Log.i(TAG, "Counter步数："+liveStep);
             StepSensorBase.CURRENT_SETP = liveStep;
         }
-        stepCallBack.Step(StepSensorBase.CURRENT_SETP);
+        stepCallBack.Step(StepSensorBase.CURRENT_SETP, 0);
     }
 
     @Override

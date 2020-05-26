@@ -25,7 +25,7 @@ public abstract class StepSensorBase implements SensorEventListener {
         /**
          * 计步回调
          */
-        void Step(int stepNum);
+        void Step(int stepNum, int CURRENT_FALL);
     }
 
     /**

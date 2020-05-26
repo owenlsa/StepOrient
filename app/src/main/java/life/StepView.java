@@ -18,8 +18,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StepView extends View {
-    private Paint mPaint;
-    private Paint mStrokePaint;
+    private Paint mPaintWalk; // 行走蓝色画笔
+    private Paint mStrokePaintWalk;
+
+    private Paint mPaintFall; //摔倒红色画笔
+    private Paint mStrokePaintFall;
+
     private Path mArrowPath; // 箭头路径
 
     private int cR = 10; // 圆点半径
@@ -30,6 +34,7 @@ public class StepView extends View {
     private int mOrient;
     private Bitmap mBitmap;
     private List<PointF> mPointList = new ArrayList<>();
+    private List mFallList = new ArrayList<>();
 
     public StepView(Context context) {
         this(context, null);
@@ -41,14 +46,24 @@ public class StepView extends View {
 
     public StepView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        // 初始化画笔
-        mPaint = new Paint();
-        mPaint.setColor(Color.BLUE);
-        mPaint.setAntiAlias(true);
-        mPaint.setStyle(Paint.Style.FILL);
-        mStrokePaint = new Paint(mPaint);
-        mStrokePaint.setStyle(Paint.Style.STROKE);
-        mStrokePaint.setStrokeWidth(5);
+        // 初始化行走蓝色画笔
+        mPaintWalk = new Paint();
+        mPaintWalk.setColor(Color.BLUE);
+        mPaintWalk.setAntiAlias(true);
+        mPaintWalk.setStyle(Paint.Style.FILL);
+        mStrokePaintWalk = new Paint(mPaintWalk);
+        mStrokePaintWalk.setStyle(Paint.Style.STROKE);
+        mStrokePaintWalk.setStrokeWidth(5);
+
+        // 初始化摔倒红色画笔
+        mPaintFall = new Paint();
+        mPaintFall.setColor(Color.RED);
+        mPaintFall.setAntiAlias(true);
+        mPaintFall.setStyle(Paint.Style.FILL);
+        mStrokePaintFall = new Paint(mPaintFall);
+        mStrokePaintFall.setStyle(Paint.Style.STROKE);
+        mStrokePaintFall.setStrokeWidth(5);
+
 
         // 初始化箭头路径
         mArrowPath = new Path();
@@ -64,14 +79,19 @@ public class StepView extends View {
         if (canvas == null) return;
 //        canvas.drawBitmap(mBitmap, new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight()), new Rect(0, 0, getWidth(), getHeight()), null); // 将mBitmap绘到canLock
         for (PointF p : mPointList) {
-            canvas.drawCircle(p.x, p.y, cR, mPaint);
+            int fallIndex = mPointList.indexOf(p);
+            if (Integer.parseInt(mFallList.get(fallIndex).toString()) == 0) { //这里判断这个点是否跌倒来选择不同的画笔
+                canvas.drawCircle(p.x, p.y, cR, mPaintWalk);
+            } else {
+                canvas.drawCircle(p.x, p.y, cR, mPaintFall);
+            }
         }
         canvas.save(); // 保存画布
         canvas.translate(mCurX, mCurY); // 平移画布
         canvas.rotate(mOrient); // 转动画布
-        canvas.drawPath(mArrowPath, mPaint);
+        canvas.drawPath(mArrowPath, mPaintWalk);
         canvas.drawArc(new RectF(-arrowR * 0.8f, -arrowR * 0.8f, arrowR * 0.8f, arrowR * 0.8f),
-                0, 360, false, mStrokePaint);
+                0, 360, false, mStrokePaintWalk);
         canvas.restore(); // 恢复画布
     }
 
@@ -89,10 +109,11 @@ public class StepView extends View {
     /**
      * 自动增加点
      */
-    public void autoAddPoint(float stepLen) {
+    public void autoAddPoint(float stepLen, int CURRENT_FALL) {
         mCurX += (float) (stepLen * Math.sin(Math.toRadians(mOrient)));
         mCurY += -(float) (stepLen * Math.cos(Math.toRadians(mOrient)));
         mPointList.add(new PointF(mCurX, mCurY));
+        mFallList.add(CURRENT_FALL);
         invalidate();
     }
 

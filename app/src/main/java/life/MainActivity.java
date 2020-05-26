@@ -19,10 +19,10 @@ public class MainActivity extends AppCompatActivity implements StepSensorBase.St
     private int mStepLen = 50; // 步长
 
     @Override
-    public void Step(int stepNum) {
+    public void Step(int stepNum, int CURRENT_FALL) {
         //  计步回调
         mStepText.setText("步数:" + stepNum);
-        mStepView.autoAddPoint(mStepLen);
+        mStepView.autoAddPoint(mStepLen, CURRENT_FALL);
     }
 
     @Override
@@ -42,14 +42,13 @@ public class MainActivity extends AppCompatActivity implements StepSensorBase.St
         mStepText = (TextView) findViewById(R.id.step_text);
         mOrientText = (TextView) findViewById(R.id.orient_text);
         mStepView = (StepView) findViewById(R.id.step_surfaceView);
-        // 注册计步监听
-//        mStepSensor = new StepSensorPedometer(this, this);
-//        if (!mStepSensor.registerStep()) {
-        mStepSensor = new StepSensorAcceleration(this, this);
+        // 选择使用哪个计步
+//        mStepSensor = new StepSensorPedometer(this, this);  //计步传感器来计步
+        mStepSensor = new StepSensorAcceleration(this, this);  //加速度 计步
         if (!mStepSensor.registerStep()) {
             Toast.makeText(this, "计步功能不可用！", Toast.LENGTH_SHORT).show();
         }
-//        }
+
         // 注册方向监听
         mOrientSensor = new OrientSensor(this, this);
         if (!mOrientSensor.registerOrient()) {

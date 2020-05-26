@@ -40,7 +40,7 @@ public class OrientSensor implements SensorEventListener {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 
         // 注册加速度传感器
-        if (sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+        if (sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER ),
                 SensorManager.SENSOR_DELAY_GAME)) {
             Log.i(TAG, "加速度传感器可用！");
         } else {
