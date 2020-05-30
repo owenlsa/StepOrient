@@ -3,33 +3,22 @@ package life.step;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
-import android.hardware.SensorManager;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import life.FallDataMap;
+import life.FallDetection;
 
 /**
  * 加速度传感器
  */
 public class StepSensorAcceleration extends StepSensorBase {
     private final String TAG = "StepSensorAcceleration";
+    private FallDetection fallDetection;
 
     private static int SENSOR_SAMPLE_RATE = 10000; //10000微妙，0.01秒一次，100Hz
 
@@ -85,6 +74,7 @@ public class StepSensorAcceleration extends StepSensorBase {
 
     public StepSensorAcceleration(Context context, StepCallBack stepCallBack) {
         super(context, stepCallBack);
+        fallDetection = new FallDetection(context);
     }
 
     @Override
@@ -134,9 +124,6 @@ public class StepSensorAcceleration extends StepSensorBase {
 
 
     public void detectorFall(float values) {  //检测跌倒的函数lsa
-        if (values > 15) {
-            CURRENT_FALL = 1;
-        }
         List dataList = FallDataMap.getInstance().getDataList();
 
         if (dataList.size() == 1200) {
@@ -159,11 +146,21 @@ public class StepSensorAcceleration extends StepSensorBase {
                     dataList.set(i+2, (int) ((float) dataList.get(i+2) + dataMove) * dataScale);
                 }
             }
-            float maxTest = (float) Collections.max(dataList);
-            float minTest = (float) Collections.min(dataList);
-            Log.i(TAG, "detectorFall: ");
+            float[] dataInput = list2array(dataList);
+            boolean FALL_RESULT = fallDetection.fallModel(dataInput);
+            if (FALL_RESULT) {
+                CURRENT_FALL = 1;
+            }
         }
 
+    }
+
+    public float[] list2array(List dataList) {
+        float[] array = new float[dataList.size()];
+        for (int i=0; i<dataList.size(); i++) {
+            array[i] = (float) dataList.get(i);
+        }
+        return array;
     }
 
     public void putAccMap(float[] values){

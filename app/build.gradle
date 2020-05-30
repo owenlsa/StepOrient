@@ -20,6 +20,9 @@ android {
     }
     productFlavors {
     }
+    aaptOptions {
+        noCompress "tflite"
+    }
 }
 
 dependencies {
@@ -27,4 +30,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     //noinspection GradleCompatible
     implementation 'com.android.support:appcompat-v7:23.1.1'
+    implementation 'org.tensorflow:tensorflow-lite:2.1.0'
 }
