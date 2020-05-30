@@ -4,16 +4,35 @@ import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import life.FallDataMap;
 
 /**
  * 加速度传感器
  */
 public class StepSensorAcceleration extends StepSensorBase {
     private final String TAG = "StepSensorAcceleration";
+
+    private static int SENSOR_SAMPLE_RATE = 10000; //10000微妙，0.01秒一次，100Hz
+
     int CURRENT_FALL = 0;
     //存放三轴数据
     final int valueNum = 5;
@@ -71,13 +90,18 @@ public class StepSensorAcceleration extends StepSensorBase {
     @Override
     protected void registerStepListener() {
         // 注册加速度传感器
-        isAvailable = sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                10000);  //10000微妙，0.01秒一次，100Hz
 //                SensorManager.SENSOR_DELAY_GAME); //SensorManager.SENSOR_DELAY_GAME = 1 对应20000微秒的更新间隔
-        if (isAvailable) {
+        if (sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                SENSOR_SAMPLE_RATE)) {
             Log.i(TAG, "加速度传感器可用！");
         } else {
             Log.i(TAG, "加速度传感器不可用！");
+        }
+        if (sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
+                SENSOR_SAMPLE_RATE)) {
+            Log.i(TAG, "陀螺仪传感器可用！");
+        } else {
+            Log.i(TAG, "陀螺仪传感器不可用！");
         }
     }
 
@@ -92,7 +116,11 @@ public class StepSensorAcceleration extends StepSensorBase {
     public void onSensorChanged(SensorEvent event) {
         Sensor sensor = event.sensor;
         synchronized (this) {
+            if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                putGyroMap(event.values);
+            }
             if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                putAccMap(event.values);
                 calc_step(event);
             }
         }
@@ -109,6 +137,43 @@ public class StepSensorAcceleration extends StepSensorBase {
         if (values > 15) {
             CURRENT_FALL = 1;
         }
+        List dataList = FallDataMap.getInstance().getDataList();
+
+        if (dataList.size() == 1200) {
+            //获取陀螺仪最大最小值
+            float gyroMax = FallDataMap.getInstance().getGyroValueMax(dataList);
+            float gyroMin = FallDataMap.getInstance().getGyroValueMin(dataList);
+            //数据转成255
+            for (int i = 0; i < 1200; i=i+3) {
+                if (i >= 600) { //陀螺仪数据处理
+                    float scale = 250/(gyroMax - gyroMin);
+                    dataList.set(i, (int) ((float) dataList.get(i) - gyroMin) * scale);
+                    dataList.set(i+1, (int) ((float) dataList.get(i+1) - gyroMin) * scale);
+                    dataList.set(i+2, (int) ((float) dataList.get(i+2) - gyroMin) * scale);
+                }
+                else { //加速度数据
+                    float dataMove = 20;
+                    float dataScale = 6;
+                    dataList.set(i, (int) ((float) dataList.get(i) + dataMove) * dataScale);
+                    dataList.set(i+1, (int) ((float) dataList.get(i+1) + dataMove) * dataScale);
+                    dataList.set(i+2, (int) ((float) dataList.get(i+2) + dataMove) * dataScale);
+                }
+            }
+            float maxTest = (float) Collections.max(dataList);
+            float minTest = (float) Collections.min(dataList);
+            Log.i(TAG, "detectorFall: ");
+        }
+
+    }
+
+    public void putAccMap(float[] values){
+        int id = FallDataMap.accDataMap.size();
+        FallDataMap.accDataMap.put(id, values);
+    }
+
+    public void putGyroMap(float[] values){
+        int id = FallDataMap.gyroDataMap.size();
+        FallDataMap.gyroDataMap.put(id, values);
     }
 
     /*

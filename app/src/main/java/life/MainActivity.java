@@ -1,5 +1,6 @@
 package life;
 
+import android.hardware.Sensor;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
@@ -16,6 +17,7 @@ public class MainActivity extends AppCompatActivity implements StepSensorBase.St
     private StepView mStepView;
     private StepSensorBase mStepSensor; // 计步传感器
     private OrientSensor mOrientSensor; // 方向传感器
+//    private GyroSensor mGyroSensor; // 方向传感器
     private int mStepLen = 50; // 步长
 
     @Override
@@ -33,6 +35,11 @@ public class MainActivity extends AppCompatActivity implements StepSensorBase.St
 //        orient = SensorUtil.getInstance().getRotateEndOrient(orient);
         mStepView.autoDrawArrow(orient);
     }
+
+//    @Override
+//    public void Gyro(int gyro) {
+//        //陀螺仪回调
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +61,11 @@ public class MainActivity extends AppCompatActivity implements StepSensorBase.St
         if (!mOrientSensor.registerOrient()) {
             Toast.makeText(this, "方向功能不可用！", Toast.LENGTH_SHORT).show();
         }
+
+//        mGyroSensor = new GyroSensor(this, this);
+//        if (!mGyroSensor.registerGyro()) {
+//            Toast.makeText(this, "方向功能不可用！", Toast.LENGTH_SHORT).show();
+//        }
     }
 
     @Override
@@ -62,5 +74,6 @@ public class MainActivity extends AppCompatActivity implements StepSensorBase.St
         // 注销传感器监听
         mStepSensor.unregisterStep();
         mOrientSensor.unregisterOrient();
+//        mGyroSensor.unregisterGyro();
     }
 }
