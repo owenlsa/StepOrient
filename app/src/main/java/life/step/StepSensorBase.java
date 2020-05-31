@@ -14,6 +14,7 @@ public abstract class StepSensorBase implements SensorEventListener {
     protected StepCallBack stepCallBack;
     protected SensorManager sensorManager;
     protected static int CURRENT_SETP = 0;
+    protected static int CURRENT_FALL_TIMES = 0;
     protected boolean isAvailable = false;
 
     public StepSensorBase(Context context, StepCallBack stepCallBack) {
@@ -25,7 +26,7 @@ public abstract class StepSensorBase implements SensorEventListener {
         /**
          * 计步回调
          */
-        void Step(int stepNum, int CURRENT_FALL);
+        void Step(int stepNum, int fallNum, int CURRENT_FALL);
     }
 
     /**

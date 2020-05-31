@@ -5,7 +5,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.util.Log;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -216,8 +215,11 @@ public class StepSensorAcceleration extends StepSensorBase {
 //            Log.v(TAG, "计步中 TEMP_STEP:" + TEMP_STEP);
 //        } else if (CountTimeState == 2) {
         StepSensorBase.CURRENT_SETP++;
+        if (CURRENT_FALL == 1) {
+            StepSensorBase.CURRENT_FALL_TIMES++;
+        }
 //            if (stepCallBack != null) {
-        stepCallBack.Step(StepSensorBase.CURRENT_SETP, CURRENT_FALL);
+        stepCallBack.Step(StepSensorBase.CURRENT_SETP, StepSensorBase.CURRENT_FALL_TIMES, CURRENT_FALL);
         CURRENT_FALL = 0;  //检测跌倒的函数lsa，重置
 //            }
 //        }

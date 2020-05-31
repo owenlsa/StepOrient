@@ -1,6 +1,5 @@
 package life;
 
-import android.hardware.Sensor;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
@@ -21,9 +20,9 @@ public class MainActivity extends AppCompatActivity implements StepSensorBase.St
     private int mStepLen = 50; // 步长
 
     @Override
-    public void Step(int stepNum, int CURRENT_FALL) {
+    public void Step(int stepNum, int fallNum, int CURRENT_FALL) {
         //  计步回调
-        mStepText.setText("步数:" + stepNum);
+        mStepText.setText("步数:" + stepNum + "\n摔倒次数:" + fallNum);
         mStepView.autoAddPoint(mStepLen, CURRENT_FALL);
     }
 

@@ -8,9 +8,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -29,12 +29,18 @@ public class StepView extends View {
     private int cR = 10; // 圆点半径
     private int arrowR = 20; // 箭头半径
 
-    private float mCurX = 200;
-    private float mCurY = 200;
+    private float mCurX = 540;
+    private float mCurY = 960;
     private int mOrient;
     private Bitmap mBitmap;
     private List<PointF> mPointList = new ArrayList<>();
     private List mFallList = new ArrayList<>();
+
+
+    private float old_x_down = 0;
+    private float old_y_down = 0;
+    private float old_translate_x = 0;
+    private float old_translate_y = 0;
 
     public StepView(Context context) {
         this(context, null);
@@ -46,6 +52,7 @@ public class StepView extends View {
 
     public StepView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+
         // 初始化行走蓝色画笔
         mPaintWalk = new Paint();
         mPaintWalk.setColor(Color.BLUE);
@@ -78,6 +85,7 @@ public class StepView extends View {
     protected void onDraw(Canvas canvas) {
         if (canvas == null) return;
 //        canvas.drawBitmap(mBitmap, new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight()), new Rect(0, 0, getWidth(), getHeight()), null); // 将mBitmap绘到canLock
+
         for (PointF p : mPointList) {
             int fallIndex = mPointList.indexOf(p);
             if (Integer.parseInt(mFallList.get(fallIndex).toString()) == 0) { //这里判断这个点是否跌倒来选择不同的画笔
@@ -100,8 +108,20 @@ public class StepView extends View {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        mCurX = event.getX();
-        mCurY = event.getY();
+        switch (event.getAction() & MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_MOVE:
+                float new_d_x = event.getX() - old_x_down + old_translate_x;
+                float new_d_y = event.getY() - old_y_down + old_translate_y;
+                Log.i("map平移", "onTouchEvent: " + new_d_x + "  " + new_d_y);
+
+                mCurX = new_d_x;
+                mCurY = new_d_y;
+
+                old_x_down = event.getX();
+                old_y_down = event.getY();
+                old_translate_x = mCurX;
+                old_translate_y = mCurY;
+        }
         invalidate();
         return true;
     }
