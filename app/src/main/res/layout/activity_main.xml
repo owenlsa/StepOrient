@@ -7,7 +7,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:text="移动箭头更改起点" />
+        android:text="移动箭头更改起点位置\n北\n西   ·  东\n南"
+        android:textAlignment="center" />
 
     <life.StepView
         android:id="@+id/step_surfaceView"
@@ -27,4 +28,5 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/step_text" />
+
 </RelativeLayout>

@@ -2,6 +2,7 @@ package life;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,7 +17,7 @@ public class MainActivity extends AppCompatActivity implements StepSensorBase.St
     private StepView mStepView;
     private StepSensorBase mStepSensor; // 计步传感器
     private OrientSensor mOrientSensor; // 方向传感器
-    private int mStepLen = 50; // 步长
+    private int mStepLen = 25; // 步长
 
     @Override
     public void Step(int stepNum, int fallNum, int CURRENT_FALL) {
@@ -35,6 +36,9 @@ public class MainActivity extends AppCompatActivity implements StepSensorBase.St
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 保持屏幕不熄屏
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         SensorUtil.getInstance().printAllSensor(this); // 打印所有可用传感器
         setContentView(R.layout.activity_main);
         mStepText = (TextView) findViewById(R.id.step_text);
