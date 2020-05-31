@@ -146,20 +146,22 @@ public class StepSensorAcceleration extends StepSensorBase {
             // 获取陀螺仪最大最小值
             float gyroMax = FallDataMap.getInstance().getGyroValueMax(dataList);
             float gyroMin = FallDataMap.getInstance().getGyroValueMin(dataList);
+            // 获取加速度最大最小值
+            float accMax = FallDataMap.getInstance().getAccValueMax(dataList);
+            float accMin = FallDataMap.getInstance().getAccValueMin(dataList);
             // 数据转成RGB值0-255
             for (int i = 0; i < 1200; i=i+3) {
                 if (i >= 600) { // 陀螺仪数据处理
-                    float scale = 250/(gyroMax - gyroMin);
-                    dataList.set(i, (int) ((float) dataList.get(i) - gyroMin) * scale);
-                    dataList.set(i+1, (int) ((float) dataList.get(i+1) - gyroMin) * scale);
-                    dataList.set(i+2, (int) ((float) dataList.get(i+2) - gyroMin) * scale);
+                    float scale = 255/(gyroMax - gyroMin);
+                    dataList.set(i, (float) Math.round(((float) dataList.get(i) - gyroMin) * scale));
+                    dataList.set(i+1, (float) Math.round(((float) dataList.get(i+1) - gyroMin) * scale));
+                    dataList.set(i+2, (float) Math.round(((float) dataList.get(i+2) - gyroMin) * scale));
                 }
-                else { // 加速度数据
-                    float dataMove = 20;
-                    float dataScale = 6;
-                    dataList.set(i, (int) ((float) dataList.get(i) + dataMove) * dataScale);
-                    dataList.set(i+1, (int) ((float) dataList.get(i+1) + dataMove) * dataScale);
-                    dataList.set(i+2, (int) ((float) dataList.get(i+2) + dataMove) * dataScale);
+                else { // 加速度数据处理
+                    float scale = 255/(accMax - accMin);
+                    dataList.set(i, (float) Math.round(((float) dataList.get(i) - accMin) * scale));
+                    dataList.set(i+1, (float) Math.round(((float) dataList.get(i+1) - accMin) * scale));
+                    dataList.set(i+2, (float) Math.round(((float) dataList.get(i+2) - accMin) * scale));
                 }
             }
             float[] dataInput = list2array(dataList); // 将ArrayList转成Array以输入模型
@@ -187,7 +189,7 @@ public class StepSensorAcceleration extends StepSensorBase {
      * */
     public void putAccMap(float[] values){
         int id = FallDataMap.accDataMap.size();
-        FallDataMap.accDataMap.put(id, values);
+        FallDataMap.accDataMap.put(id, values.clone());
     }
 
     /*
@@ -195,7 +197,7 @@ public class StepSensorAcceleration extends StepSensorBase {
      * */
     public void putGyroMap(float[] values){
         int id = FallDataMap.gyroDataMap.size();
-        FallDataMap.gyroDataMap.put(id, values);
+        FallDataMap.gyroDataMap.put(id, values.clone());
     }
 
     /*

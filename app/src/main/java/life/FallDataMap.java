@@ -39,6 +39,22 @@ public class FallDataMap {
         return gyroValueMin;
     }
 
+    /*
+     * 获取加速度最大值
+     * */
+    public float getAccValueMax(List dataList) {
+        float accValueMax = (float) Collections.max(dataList.subList(0,600));
+        return accValueMax;
+    }
+
+    /*
+     * 获取加速度最小值
+     * */
+    public float getAccValueMin(List dataList) {
+        float accValueMin = (float) Collections.min(dataList.subList(0,600));
+        return accValueMin;
+    }
+
     /**
      * 获取传感器数据sample
      * @return 包含加速度和陀螺仪的ArrayList
