@@ -7,13 +7,13 @@ import android.hardware.SensorManager;
 import life.util.SensorUtil;
 
 /**
- * 计步传感器抽象类，子类分为加速度传感器、或计步传感器
+ * 计步传感器抽象类，子类为加速度传感器
  */
 public abstract class StepSensorBase implements SensorEventListener {
     private Context context;
     protected StepCallBack stepCallBack;
     protected SensorManager sensorManager;
-    protected static int CURRENT_SETP = 0;
+    protected static int CURRENT_STEP = 0;
     protected static int CURRENT_FALL_TIMES = 0;
     protected boolean isAvailable = false;
 
@@ -37,7 +37,6 @@ public abstract class StepSensorBase implements SensorEventListener {
             sensorManager.unregisterListener(this);
             sensorManager = null;
         }
-//        sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sensorManager = SensorUtil.getInstance().getSensorManager(context);
         isAvailable = registerStepListener();
         return isAvailable;
@@ -45,7 +44,6 @@ public abstract class StepSensorBase implements SensorEventListener {
 
     /**
      * 注册计步监听器
-     * @return
      */
     protected abstract boolean registerStepListener();
 

@@ -66,8 +66,9 @@ public class OrientSensor implements SensorEventListener {
         sensorManager.unregisterListener(this);
     }
 
-
-
+    /**
+     * 传感器数据采集和处理
+     */
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
@@ -84,7 +85,7 @@ public class OrientSensor implements SensorEventListener {
         if (degree < 0) {
             degree += 360;
         }
-        orientCallBack.Orient(degree);
+        orientCallBack.Orient(degree); //方向回调
     }
 
     @Override

@@ -13,26 +13,33 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class FallDetection {
-    private static final String TAG = "FallDetection";
-    private static final String MODEL_PATH = "fallDetection.tflite";
     private final Context context;
+    private static final String TAG = "FallDetection";
+
+    // tflite模型文件名
+    private static final String MODEL_PATH = "fallDetection.tflite";
+    // tflite解释器
     private Interpreter tfliteInterpreter;
 
     public FallDetection(Context context) {
         this.context = context;
     }
 
+    /**
+     * 摔倒检测模型主函数
+     * @return 是否摔倒
+     */
     public synchronized boolean fallModel(float[] dataList) {
         load();
         boolean FALL_RESULT = fallDetect(dataList);
         return FALL_RESULT;
     }
 
+    /*
+     * 获取数组中最大值索引
+     * */
     private int getMaxID(float[] data) {
         float max = -1000000;
         int maxID = -1;
@@ -46,13 +53,17 @@ public class FallDetection {
     }
 
 
-    /** Load the TF Lite model and dictionary so that the client can start classifying text. */
+    /**
+     * 读取模型
+     */
     @WorkerThread
     public void load() {
         loadModel();
     }
 
-    /** Load TF Lite model. */
+    /*
+     * 读取tflite模型
+     * */
     @WorkerThread
     private synchronized void loadModel() {
         try {
@@ -64,31 +75,36 @@ public class FallDetection {
         }
     }
 
-    /** Free up resources as the client is no longer needed. */
+    /**
+     * 释放tflite解释器
+     */
     @WorkerThread
     public synchronized void unload() {
         tfliteInterpreter.close();
     }
 
-    /** Classify an input string and returns the classification results. */
+    /**
+     * 摔倒检测函数
+     */
     @WorkerThread
     public synchronized boolean fallDetect(float[] dataList) {
         float[] input = dataList;
-        Log.v(TAG, "Classifying text with TF Lite...");
-        float[][] output = new float[1][8];
-        tfliteInterpreter.run(input, output);
-        float[] resultProb = output[0];
-        int maxID = getMaxID(resultProb);
         boolean FALL_RESULT = false;
-        if (maxID == 0) {
+        float[][] output = new float[1][8]; // 模型输出格式 float[1][8]
+        // tflite解释器run
+        tfliteInterpreter.run(input, output);
+        float[] resultProb = output[0]; // 模型输出变形为 float[8]
+        int maxID = getMaxID(resultProb); // 获取输出最大概率的索引
+        if (maxID == 0) { // 索引为0时，判定为摔倒
             FALL_RESULT = true;
         }
-        unload();
-
+        unload(); // 释放解释器
         return FALL_RESULT;
     }
 
-    /** Load TF Lite model from assets. */
+    /**
+     * 从assets文件夹中获取tflite文件
+     */
     private static MappedByteBuffer loadModelFile(AssetManager assetManager) throws IOException {
         try (AssetFileDescriptor fileDescriptor = assetManager.openFd(MODEL_PATH);
              FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor())) {

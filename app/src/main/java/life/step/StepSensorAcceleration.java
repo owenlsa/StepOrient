@@ -19,8 +19,9 @@ public class StepSensorAcceleration extends StepSensorBase {
     private final String TAG = "StepSensorAcceleration";
     private FallDetection fallDetection;
 
-    private static int SENSOR_SAMPLE_RATE = 10000; //10000微妙，0.01秒一次，100Hz
-
+    //传感器数据采集频率，10000微妙，100Hz
+    private static int SENSOR_SAMPLE_RATE = 10000;
+    //摔倒标志位，0为行走，1为摔倒
     int CURRENT_FALL = 0;
     //存放三轴数据
     final int valueNum = 5;
@@ -53,7 +54,6 @@ public class StepSensorAcceleration extends StepSensorBase {
     final float initialValue = (float) 1.7;
     //初始阈值
     float ThreadValue = (float) 2.0;
-
     //初始范围
     float minValue = 11f;
     float maxValue = 19.6f;
@@ -68,19 +68,22 @@ public class StepSensorAcceleration extends StepSensorBase {
     public static float average = 0;
     private Timer timer;
     // 倒计时3.5秒，3.5秒内不会显示计步，用于屏蔽细微波动
-    private long duration = 3500;
     private TimeCount time;
+
 
     public StepSensorAcceleration(Context context, StepCallBack stepCallBack) {
         super(context, stepCallBack);
         fallDetection = new FallDetection(context);
     }
 
+    /**
+     * 注册加速度传感器和陀螺仪传感器
+     * @return 是否支持计步和摔倒检测
+     */
     @Override
     public boolean registerStepListener() {
         boolean isAvailable = true;
         // 注册加速度传感器
-//                SensorManager.SENSOR_DELAY_GAME); //SensorManager.SENSOR_DELAY_GAME = 1 对应20000微秒的更新间隔
         if (sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                 SENSOR_SAMPLE_RATE)) {
             Log.i(TAG, "加速度传感器可用！");
@@ -88,6 +91,8 @@ public class StepSensorAcceleration extends StepSensorBase {
             Log.i(TAG, "加速度传感器不可用！");
             isAvailable = false;
         }
+
+        // 注册陀螺仪传感器
         if (sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
                 SENSOR_SAMPLE_RATE)) {
             Log.i(TAG, "陀螺仪传感器可用！");
@@ -106,42 +111,50 @@ public class StepSensorAcceleration extends StepSensorBase {
     public void onAccuracyChanged(Sensor arg0, int arg1) {
     }
 
+    /**
+     * 传感器数据采集和处理
+     */
     public void onSensorChanged(SensorEvent event) {
         Sensor sensor = event.sensor;
         synchronized (this) {
             if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-                putGyroMap(event.values);
+                putGyroMap(event.values); // 储存陀螺仪数据
             }
             if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                putAccMap(event.values);
+                putAccMap(event.values); // 储存加速度数据
                 calc_step(event);
             }
         }
     }
 
+    /**
+     * 计步检测
+     */
     synchronized private void calc_step(SensorEvent event) {
         average = (float) Math.sqrt(Math.pow(event.values[0], 2)
                 + Math.pow(event.values[1], 2) + Math.pow(event.values[2], 2));
         detectorNewStep(average);
     }
 
-
-    public void detectorFall(float values) {  //检测跌倒的函数lsa
+    /**
+     * 摔倒检测
+     */
+    public void detectorFall() {
         List dataList = FallDataMap.getInstance().getDataList();
 
         if (dataList.size() == 1200) {
-            //获取陀螺仪最大最小值
+            // 获取陀螺仪最大最小值
             float gyroMax = FallDataMap.getInstance().getGyroValueMax(dataList);
             float gyroMin = FallDataMap.getInstance().getGyroValueMin(dataList);
-            //数据转成255
+            // 数据转成RGB值0-255
             for (int i = 0; i < 1200; i=i+3) {
-                if (i >= 600) { //陀螺仪数据处理
+                if (i >= 600) { // 陀螺仪数据处理
                     float scale = 250/(gyroMax - gyroMin);
                     dataList.set(i, (int) ((float) dataList.get(i) - gyroMin) * scale);
                     dataList.set(i+1, (int) ((float) dataList.get(i+1) - gyroMin) * scale);
                     dataList.set(i+2, (int) ((float) dataList.get(i+2) - gyroMin) * scale);
                 }
-                else { //加速度数据
+                else { // 加速度数据
                     float dataMove = 20;
                     float dataScale = 6;
                     dataList.set(i, (int) ((float) dataList.get(i) + dataMove) * dataScale);
@@ -149,15 +162,18 @@ public class StepSensorAcceleration extends StepSensorBase {
                     dataList.set(i+2, (int) ((float) dataList.get(i+2) + dataMove) * dataScale);
                 }
             }
-            float[] dataInput = list2array(dataList);
-            boolean FALL_RESULT = fallDetection.fallModel(dataInput);
+            float[] dataInput = list2array(dataList); // 将ArrayList转成Array以输入模型
+            boolean FALL_RESULT = fallDetection.fallModel(dataInput); // tflite模型调用
             if (FALL_RESULT) {
-                CURRENT_FALL = 1;
+                CURRENT_FALL = 1; // 摔倒标志位置1
             }
         }
 
     }
 
+    /*
+     * 将数据ArrayList类型转换为Array类型
+     * */
     public float[] list2array(List dataList) {
         float[] array = new float[dataList.size()];
         for (int i=0; i<dataList.size(); i++) {
@@ -166,11 +182,17 @@ public class StepSensorAcceleration extends StepSensorBase {
         return array;
     }
 
+    /*
+     * 加速度数据存储
+     * */
     public void putAccMap(float[] values){
         int id = FallDataMap.accDataMap.size();
         FallDataMap.accDataMap.put(id, values);
     }
 
+    /*
+     * 陀螺仪数据存储
+     * */
     public void putGyroMap(float[] values){
         int id = FallDataMap.gyroDataMap.size();
         FallDataMap.gyroDataMap.put(id, values);
@@ -193,8 +215,7 @@ public class StepSensorAcceleration extends StepSensorBase {
                 if (timeOfNow - timeOfLastPeak >= 200
                         && (peakOfWave - valleyOfWave >= ThreadValue) && (timeOfNow - timeOfLastPeak) <= 2000) {
                     timeOfThisPeak = timeOfNow;
-                    detectorFall(values);  //检测跌倒的函数lsa
-                    //更新界面的处理，不涉及到算法
+                    detectorFall();  // 检测跌倒调用
                     preStep();
                 }
                 if (timeOfNow - timeOfLastPeak >= 200
@@ -207,26 +228,13 @@ public class StepSensorAcceleration extends StepSensorBase {
         gravityOld = values;
     }
 
-    private void preStep() { //完成计步判定
-//        if (CountTimeState == 0) {
-//            // 开启计时器
-//            time = new TimeCount(duration, 700);
-//            time.start();
-//            CountTimeState = 1;
-//            Log.v(TAG, "开启计时器");
-//        } else if (CountTimeState == 1) {
-//            TEMP_STEP++;
-//            Log.v(TAG, "计步中 TEMP_STEP:" + TEMP_STEP);
-//        } else if (CountTimeState == 2) {
-        StepSensorBase.CURRENT_SETP++;
+    private void preStep() { // 完成计步判定
+        StepSensorBase.CURRENT_STEP++;
         if (CURRENT_FALL == 1) {
             StepSensorBase.CURRENT_FALL_TIMES++;
         }
-//            if (stepCallBack != null) {
-        stepCallBack.Step(StepSensorBase.CURRENT_SETP, StepSensorBase.CURRENT_FALL_TIMES, CURRENT_FALL);
-        CURRENT_FALL = 0;  //检测跌倒的函数lsa，重置
-//            }
-//        }
+        stepCallBack.Step(StepSensorBase.CURRENT_STEP, StepSensorBase.CURRENT_FALL_TIMES, CURRENT_FALL);
+        CURRENT_FALL = 0;  // 摔倒标志位重置
 
     }
 
@@ -252,8 +260,6 @@ public class StepSensorAcceleration extends StepSensorBase {
             continueUpCount = 0;
             isDirectionUp = false;
         }
-
-//        Log.v(TAG, "oldValue:" + oldValue);
         if (!isDirectionUp && lastStatus
                 && (continueUpFormerCount >= 2 && (oldValue >= minValue && oldValue < maxValue))) {
             peakOfWave = oldValue;
@@ -327,21 +333,21 @@ public class StepSensorAcceleration extends StepSensorBase {
         public void onFinish() {
             // 如果计时器正常结束，则开始计步
             time.cancel();
-            StepSensorBase.CURRENT_SETP += TEMP_STEP;
+            StepSensorBase.CURRENT_STEP += TEMP_STEP;
             lastStep = -1;
             Log.v(TAG, "计时正常结束");
 
             timer = new Timer(true);
             TimerTask task = new TimerTask() {
                 public void run() {
-                    if (lastStep == StepSensorBase.CURRENT_SETP) {
+                    if (lastStep == StepSensorBase.CURRENT_STEP) {
                         timer.cancel();
                         CountTimeState = 0;
                         lastStep = -1;
                         TEMP_STEP = 0;
-                        Log.v(TAG, "停止计步：" + StepSensorBase.CURRENT_SETP);
+                        Log.v(TAG, "停止计步：" + StepSensorBase.CURRENT_STEP);
                     } else {
-                        lastStep = StepSensorBase.CURRENT_SETP;
+                        lastStep = StepSensorBase.CURRENT_STEP;
                     }
                 }
             };

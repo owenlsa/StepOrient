@@ -32,11 +32,11 @@ public class StepView extends View {
     private float mCurX = 540;
     private float mCurY = 960;
     private int mOrient;
-    private Bitmap mBitmap;
-    private List<PointF> mPointList = new ArrayList<>();
-    private List mFallList = new ArrayList<>();
+    private Bitmap mBitmap; // 背景图片
+    private List<PointF> mPointList = new ArrayList<>(); // 存放轨迹点
+    private List mFallList = new ArrayList<>(); // 存放轨迹点对应的摔倒检测结果
 
-
+    // 平移箭头变量
     private float old_x_down = 0;
     private float old_y_down = 0;
     private float old_translate_x = 0;
@@ -71,20 +71,22 @@ public class StepView extends View {
         mStrokePaintFall.setStyle(Paint.Style.STROKE);
         mStrokePaintFall.setStrokeWidth(5);
 
-
         // 初始化箭头路径
         mArrowPath = new Path();
         mArrowPath.arcTo(new RectF(-arrowR, -arrowR, arrowR, arrowR), 0, -180);
         mArrowPath.lineTo(0, -3 * arrowR);
         mArrowPath.close();
+
         // 页面背景，png最好
-        mBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher);
+        // mBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         if (canvas == null) return;
-//        canvas.drawBitmap(mBitmap, new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight()), new Rect(0, 0, getWidth(), getHeight()), null); // 将mBitmap绘到canLock
+
+        // 背景设置
+        // canvas.drawBitmap(mBitmap, new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight()), new Rect(0, 0, getWidth(), getHeight()), null); // 将mBitmap绘到canLock
 
         for (PointF p : mPointList) {
             int fallIndex = mPointList.indexOf(p);
@@ -127,7 +129,7 @@ public class StepView extends View {
     }
 
     /**
-     * 自动增加点
+     * 增加轨迹点
      */
     public void autoAddPoint(float stepLen, int CURRENT_FALL) {
         mCurX += (float) (stepLen * Math.sin(Math.toRadians(mOrient)));
@@ -137,6 +139,9 @@ public class StepView extends View {
         invalidate();
     }
 
+    /**
+     * 绘制箭头
+     */
     public void autoDrawArrow(int orient) {
         mOrient = orient;
         invalidate();
