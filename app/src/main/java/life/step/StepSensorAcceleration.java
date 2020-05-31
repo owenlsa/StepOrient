@@ -77,7 +77,8 @@ public class StepSensorAcceleration extends StepSensorBase {
     }
 
     @Override
-    protected void registerStepListener() {
+    public boolean registerStepListener() {
+        boolean isAvailable = true;
         // 注册加速度传感器
 //                SensorManager.SENSOR_DELAY_GAME); //SensorManager.SENSOR_DELAY_GAME = 1 对应20000微秒的更新间隔
         if (sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
@@ -85,13 +86,16 @@ public class StepSensorAcceleration extends StepSensorBase {
             Log.i(TAG, "加速度传感器可用！");
         } else {
             Log.i(TAG, "加速度传感器不可用！");
+            isAvailable = false;
         }
         if (sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
                 SENSOR_SAMPLE_RATE)) {
             Log.i(TAG, "陀螺仪传感器可用！");
         } else {
             Log.i(TAG, "陀螺仪传感器不可用！");
+            isAvailable = false;
         }
+        return isAvailable;
     }
 
     @Override

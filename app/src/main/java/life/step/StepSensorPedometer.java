@@ -21,7 +21,7 @@ public class StepSensorPedometer extends StepSensorBase {
     }
 
     @Override
-    protected void registerStepListener() {
+    protected boolean registerStepListener() {
         Sensor detectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
         Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         if (sensorManager.registerListener(this, detectorSensor, SensorManager.SENSOR_DELAY_GAME)) {
@@ -36,6 +36,7 @@ public class StepSensorPedometer extends StepSensorBase {
             isAvailable = false;
             Log.i(TAG, "计步传感器不可用！");
         }
+        return isAvailable;
     }
 
     @Override

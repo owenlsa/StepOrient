@@ -39,14 +39,15 @@ public abstract class StepSensorBase implements SensorEventListener {
         }
 //        sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sensorManager = SensorUtil.getInstance().getSensorManager(context);
-        registerStepListener();
+        isAvailable = registerStepListener();
         return isAvailable;
     }
 
     /**
      * 注册计步监听器
+     * @return
      */
-    protected abstract void registerStepListener();
+    protected abstract boolean registerStepListener();
 
     /**
      * 注销计步监听器
