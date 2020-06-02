@@ -29,6 +29,15 @@ public abstract class StepSensorBase implements SensorEventListener {
         void Step(int stepNum, int fallNum, int CURRENT_FALL);
     }
 
+    public void StepResetCallBack() {
+        /**
+         * 计步重置
+         */
+
+        CURRENT_STEP = 0;
+        CURRENT_FALL_TIMES = 0;
+    }
+
     /**
      * 开启计步
      */

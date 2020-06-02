@@ -2,6 +2,7 @@ package life;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,5 +64,10 @@ public class MainActivity extends AppCompatActivity implements StepSensorBase.St
         // 注销传感器监听
         mStepSensor.unregisterStep();
         mOrientSensor.unregisterOrient();
+    }
+
+    public void onClick(View view) {
+        onDestroy();
+        onCreate(null);
     }
 }

@@ -3,8 +3,10 @@ package life.step;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
+import android.icu.text.SimpleDateFormat;
 import android.util.Log;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -165,7 +167,15 @@ public class StepSensorAcceleration extends StepSensorBase {
                 }
             }
             float[] dataInput = list2array(dataList); // 将ArrayList转成Array以输入模型
+
+//            long startTime=System.currentTimeMillis();   //获取开始时间
+
             boolean FALL_RESULT = fallDetection.fallModel(dataInput); // tflite模型调用
+
+//            long endTime=System.currentTimeMillis(); //获取结束时间
+//            Log.i(TAG, "detectorFall: " + "tflite模型运行时间： "+ (endTime - startTime) +"ms");
+
+
             if (FALL_RESULT) {
                 CURRENT_FALL = 1; // 摔倒标志位置1
             }
